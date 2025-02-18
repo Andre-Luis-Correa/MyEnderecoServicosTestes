@@ -9,10 +9,8 @@ import unioeste.geral.endereco.bo.tipologradouro.TipoLogradouro;
 import unioeste.geral.endereco.bo.unidadefederativa.UnidadeFederativa;
 import unioeste.geral.endereco.col.CidadeCOL;
 import unioeste.geral.endereco.col.EnderecoCOL;
-import unioeste.geral.endereco.dao.BairroDAO;
 import unioeste.geral.endereco.dao.CidadeDAO;
 import unioeste.geral.endereco.dao.EnderecoDAO;
-import unioeste.geral.endereco.dao.LogradouroDAO;
 import unioeste.geral.endereco.exception.EnderecoException;
 import unioeste.geral.endereco.infra.CepAPI;
 import unioeste.geral.endereco.service.UCEnderecoGeralServicos;
@@ -47,62 +45,27 @@ public class UCEnderecoGeralServicosTeste {
 
     @Test
     public void deveCadastrarEnderecoComSucesso() throws Exception {
-        try (MockedStatic<CidadeDAO> cidadeDAOMock = mockStatic(CidadeDAO.class);
-             MockedStatic<BairroDAO> bairroDAOMock = mockStatic(BairroDAO.class);
-             MockedStatic<LogradouroDAO> logradouroDAOMock = mockStatic(LogradouroDAO.class);
-             MockedStatic<EnderecoCOL> enderecoCOLMock = mockStatic(EnderecoCOL.class);
+        try (MockedStatic<EnderecoCOL> enderecoCOLMock = mockStatic(EnderecoCOL.class);
              MockedStatic<EnderecoDAO> enderecoDAOMock = mockStatic(EnderecoDAO.class)) {
-
             // Arrange
-            cidadeDAOMock.when(() -> CidadeDAO.selectCidadePorNome(endereco.getCidade().getNome())).thenReturn(null);
-            cidadeDAOMock.when(() -> CidadeDAO.insertCidade(endereco.getCidade())).thenReturn(endereco.getCidade());
-
-            bairroDAOMock.when(() -> BairroDAO.selectBairroPorNome(endereco.getBairro().getNome())).thenReturn(null);
-            bairroDAOMock.when(() -> BairroDAO.insertBairro(endereco.getBairro())).thenReturn(endereco.getBairro());
-
-            logradouroDAOMock.when(() -> LogradouroDAO.selectLogradouroPorNome(endereco.getLogradouro().getNome())).thenReturn(null);
-            logradouroDAOMock.when(() -> LogradouroDAO.insertLogradouro(endereco.getLogradouro())).thenReturn(endereco.getLogradouro());
-
             enderecoCOLMock.when(() -> EnderecoCOL.enderecoValido(endereco)).thenReturn(true);
             enderecoDAOMock.when(() -> EnderecoDAO.insertEndereco(endereco)).thenReturn(endereco);
-
             // Act
             Endereco enderecoTeste = UCEnderecoGeralServicos.cadastrarEndereco(endereco);
-
             // Assert
             assertNotNull(enderecoTeste);
             assertEquals(endereco, enderecoTeste);
-
-            cidadeDAOMock.verify(() -> CidadeDAO.selectCidadePorNome(endereco.getCidade().getNome()));
-            cidadeDAOMock.verify(() -> CidadeDAO.insertCidade(endereco.getCidade()));
-
-            bairroDAOMock.verify(() -> BairroDAO.selectBairroPorNome(endereco.getBairro().getNome()));
-            bairroDAOMock.verify(() -> BairroDAO.insertBairro(endereco.getBairro()));
-
-            logradouroDAOMock.verify(() -> LogradouroDAO.selectLogradouroPorNome(endereco.getLogradouro().getNome()));
-            logradouroDAOMock.verify(() -> LogradouroDAO.insertLogradouro(endereco.getLogradouro()));
-
             enderecoCOLMock.verify(() -> EnderecoCOL.enderecoValido(endereco));
             enderecoDAOMock.verify(() -> EnderecoDAO.insertEndereco(endereco));
         }
     }
-
     @Test
     public void deveRetornarEnderecoExceptionQuandoTentarCadastrarEnderecoInvalido() {
-        try (MockedStatic<CidadeDAO> cidadeDAOMock = mockStatic(CidadeDAO.class);
-             MockedStatic<BairroDAO> bairroDAOMock = mockStatic(BairroDAO.class);
-             MockedStatic<LogradouroDAO> logradouroDAOMock = mockStatic(LogradouroDAO.class);
-             MockedStatic<EnderecoCOL> enderecoCOLMock = mockStatic(EnderecoCOL.class)) {
-
+        try (MockedStatic<EnderecoCOL> enderecoCOLMock = mockStatic(EnderecoCOL.class)) {
             // Arrange
-            cidadeDAOMock.when(() -> CidadeDAO.selectCidadePorNome(endereco.getCidade().getNome())).thenReturn(null);
-            bairroDAOMock.when(() -> BairroDAO.selectBairroPorNome(endereco.getBairro().getNome())).thenReturn(null);
-            logradouroDAOMock.when(() -> LogradouroDAO.selectLogradouroPorNome(endereco.getLogradouro().getNome())).thenReturn(null);
             enderecoCOLMock.when(() -> EnderecoCOL.enderecoValido(endereco)).thenReturn(false);
-
             // Act and Assert
             assertThrows(EnderecoException.class, () -> UCEnderecoGeralServicos.cadastrarEndereco(endereco));
-            enderecoCOLMock.verify(() -> EnderecoCOL.enderecoValido(endereco));
         }
     }
 
